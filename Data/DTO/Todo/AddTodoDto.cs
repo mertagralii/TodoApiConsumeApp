@@ -1,6 +1,6 @@
 namespace TodoApiConsumeApp.Data.DTO.Todo;
 
-public class AddTodo
-{
-    
+public class AddTodoDto
+{ 
+    public string TaskName { get; set; }
 }
