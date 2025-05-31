@@ -11,7 +11,7 @@ using TodoApiConsumeApp.Data.Entities;
 
 namespace TodoApiConsumeApp.Controllers
 {
-    [Authorize]
+    // [Authorize]
     [Route("[controller]")]
     [ApiController]
     public class TodoController : ControllerBase
@@ -21,12 +21,14 @@ namespace TodoApiConsumeApp.Controllers
         private readonly IMapper _mapper;
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        
 
         public TodoController( IMapper mapper, AppDbContext context, UserManager<ApplicationUser> userManager)
         {
             _mapper = mapper;
             _context = context;
             _userManager = userManager;
+            
         }
 
         #endregion
@@ -91,23 +93,37 @@ namespace TodoApiConsumeApp.Controllers
         [SwaggerResponse(200, "Todo Eklendi.")]
         [SwaggerResponse(400, "Kullanıcı Veriyi Doğru Girmedi.")]
         [SwaggerResponse(404, "Kullanıcıya Bulunamadı.")]
-        public ActionResult<AddTodoDto> AddTodo([FromBody] AddTodoDto todoDto)
+        public async Task<ActionResult<AddTodoDto>> AddTodo([FromBody] AddTodoDto todoDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Lütfen Bütün verileri Doğru Giriniz.");
             }
+            
             var userId = _userManager.GetUserId(User);
             if (userId == null)
             {
                 return NotFound("Kullanıcı Bulunamadı.");
             }
+            
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("Kullanıcı Bulunamadı.");
+            }
+            
             var addTodo = _mapper.Map<Todo>(todoDto);
+            
             addTodo.UserId = userId;
+            
             addTodo.CreatedDate = DateTime.Now;
+            
             addTodo.IsCompleted = false;
-            _context.Todos.Add(addTodo);
-            _context.SaveChanges();
+            
+            await _context.Todos.AddAsync(addTodo);
+            
+            await _context.SaveChangesAsync();
+            
             var result = _mapper.Map<AddTodoDto>(addTodo);
             return Ok(result);
         }

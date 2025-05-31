@@ -36,7 +36,6 @@ public class Program
         
         builder.Services.AddAuthorization();
         builder.Services.AddAutoMapper(typeof(Program).Assembly); // AutoMapper Kullanacağımız Zaman bunu kullanmamız gerekiyor.
-
         builder.Services
             .AddControllers(options =>
             {
@@ -49,6 +48,8 @@ public class Program
             });
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
+        
+        // Swagger Dökümantasyonu ve Author giriş kısmı
         builder.Services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo
@@ -90,18 +91,30 @@ public class Program
             });
             options.EnableAnnotations();
         });
+        
+        // CORS ==> Apilerimizi kullanabilir bir hale getiriyoruz.
+        // 1. Adım ==>
+        builder.Services.AddCors(options => // CORS POLİCY SERVİCESS
+        {
+            options.AddPolicy("AllowAll",
+                builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+        });
 
 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
+        // if (app.Environment.IsDevelopment())
+        // {
             app.UseSwagger();
             app.UseSwaggerUI();
-        }
+        // }
 
         app.UseHttpsRedirection();
+        // 2.ADIM ==> 
+        app.UseCors("AllowAll"); // CORS POLİCY ADDED
 
         app.UseAuthorization();
 
